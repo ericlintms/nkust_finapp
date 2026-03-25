@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPV 淨現值計算器 | 專業投資評估工具</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* 金融專業配色方案 */
+            --primary-dark: #0F3460;      /* 深海藍 */
+            --primary-light: #16527A;     /* 中等藍 */
+            --accent-gold: #D4AF37;       /* 黃金色 */
+            --accent-green: #2ECC71;      /* 專業綠 */
+            --accent-red: #E74C3C;        /* 專業紅 */
+            --text-dark: #1A1A1A;         /* 深灰黑 */
+            --text-light: #5A6C7D;        /* 淺灰 */
+            --border-light: #E8EEF5;      /* 淺藍灰邊框 */
+            --bg-light: #F7F9FC;          /* 淺藍灰背景 */
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+        }
+
+        .main-container {
+            width: 100%;
+        }
+
+        /* 主卡片容器 */
+        .card-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(15, 52, 96, 0.15);
+            border: none;
+            overflow: hidden;
+        }
+
+        /* 卡片頂部裝飾條 */
+        .card-header {
+            background: linear-gradient(90deg, var(--accent-gold) 0%, var(--accent-green) 50%, var(--accent-gold) 100%);
+            height: 4px;
+            border: none;
+            padding: 0;
+        }
+
+        .card-body {
+            padding: 3rem;
+        }
+
+        /* 標頭樣式 */
+        .breadcrumb-custom {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 2.5rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle-text {
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        /* 表單樣式 */
+        .form-label {
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-label::before {
+            content: '▸';
+            color: var(--accent-gold);
+            font-weight: 700;
+        }
+
+        .form-control {
+            border-color: var(--border-light) !important;
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-control:hover {
+            background-color: white;
+            border-color: #D0DDE8 !important;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-light) !important;
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(22, 82, 122, 0.08);
+        }
+
+        .form-text {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        /* 按鈕樣式 */
+        .btn-primary-finance {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(15, 52, 96, 0.2);
+        }
+
+        .btn-primary-finance:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(15, 52, 96, 0.3);
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary-finance:active {
+            transform: translateY(0);
+        }
+
+        /* 加載狀態 */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            color: var(--primary-light);
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.2em;
+        }
+
+        /* 結果區塊 */
+        .result-section {
+            margin-top: 2rem;
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 結果卡片 */
+        .result-card {
+            background: var(--bg-light);
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-value {
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 1.2rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* NPV 主要結果 */
+        .npv-display {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 2rem;
+            border-radius: 12px;
+            background: var(--bg-light);
+            border: 3px solid var(--border-light);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .npv-display.positive {
+            color: var(--accent-green);
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.08), rgba(46, 204, 113, 0.04));
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+
+        .npv-display.negative {
+            color: var(--accent-red);
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.08), rgba(231, 76, 60, 0.04));
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+
+        /* 投資決策提示 */
+        .investment-decision {
+            padding: 1.25rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .investment-decision.good {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(46, 204, 113, 0.08));
+            color: var(--accent-green);
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .investment-decision.bad {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(231, 76, 60, 0.08));
+            color: var(--accent-red);
+            border-left: 4px solid var(--accent-red);
+        }
+
+        /* 錯誤提示 */
+        .alert-custom {
+            border-left: 4px solid var(--accent-red);
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.12), rgba(231, 76, 60, 0.06));
+            color: var(--accent-red);
+            border: none;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .alert-custom.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        /* 現金流顯示 */
+        .cash-flows-display {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            border: 1px solid var(--border-light);
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+        }
+
+        /* 說明區塊 */
+        .explanation-box {
+            background: var(--bg-light);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            line-height: 1.8;
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        .explanation-box strong {
+            color: var(--primary-dark);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .npv-display {
+                font-size: 2.2rem;
+                padding: 1.5rem;
+            }
+
+            .btn-primary-finance {
+                width: 100%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="main-container d-flex align-items-center justify-content-center py-4 py-md-0">
+        <div class="container-lg px-3">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-10 col-lg-8 col-xl-7">
+                    <div class="card card-container border-0">
+                        <!-- 卡片頂部裝飾 -->
+                        <div class="card-header"></div>
+
+                        <!-- 卡片主內容 -->
+                        <div class="card-body">
+                            <!-- 標頭區塊 -->
+                            <div class="mb-4">
+                                <div class="breadcrumb-custom">
+                                    <i class="bi bi-graph-up"></i> 投資評估工具
+                                </div>
+                                <h1>NPV 計算器</h1>
+                                <p class="subtitle-text mb-0">
+                                    淨現值（Net Present Value）分析工具，用於評估投資專案的經濟可行性
+                                </p>
+                            </div>
+
+                            <!-- 分隔線 -->
+                            <div class="divider"></div>
+
+                            <!-- 表單區塊 -->
+                            <form id="npvForm">
+                                <!-- 折現率輸入 -->
+                                <div class="form-group">
+                                    <label for="rate" class="form-label">
+                                        <i class="bi bi-percent"></i> 折現率 (Discount Rate)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="rate" 
+                                        name="rate" 
+                                        step="0.01" 
+                                        min="0" 
+                                        max="1"
+                                        placeholder="0.08" 
+                                        required
+                                    >
+                                    <small class="form-text">
+                                        輸入十進制數值 (例如：5% 請輸入 <code>0.05</code>，10% 請輸入 <code>0.10</code>)
+                                    </small>
+                                </div>
+
+                                <!-- 現金流輸入 -->
+                                <div class="form-group">
+                                    <label for="cashFlows" class="form-label">
+                                        <i class="bi bi-cash-flow"></i> 現金流 (Cash Flows)
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="cashFlows" 
+                                        name="cashFlows" 
+                                        placeholder="-100000,30000,35000,40000,50000" 
+                                        required
+                                    >
+                                    <small class="form-text">
+                                        以逗號分隔的現金流序列。第一個值通常為初始投資（負數），後續為各期預期現金流入（正數）
+                                    </small>
+                                </div>
+
+                                <!-- 提交按鈕 -->
+                                <button type="submit" class="btn btn-primary-finance w-100">
+                                    <i class="bi bi-calculator"></i> 分析投資評估
+                                </button>
+
+                                <!-- 加載指示 -->
+                                <div class="loading-spinner" id="loading">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <span class="ms-2">計算中...</span>
+                                </div>
+                            </form>
+
+                            <!-- 錯誤提示 -->
+                            <div class="alert-custom" id="error" role="alert"></div>
+
+                            <!-- 結果區塊 -->
+                            <div class="result-section" id="resultSection">
+                                <!-- 基本信息卡片 -->
+                                <div class="result-card">
+                                    <div class="result-row">
+                                        <span class="result-label">
+                                            <i class="bi bi-percent"></i> 折現率
+                                        </span>
+                                        <span class="result-value" id="resultRate"></span>
+                                    </div>
+
+                                    <div class="result-row">
+                                        <span class="result-label">
+                                            <i class="bi bi-coin"></i> 投資現金流
+                                        </span>
+                                    </div>
+                                    <div class="cash-flows-display" id="resultCashFlows"></div>
+                                </div>
+
+                                <!-- NPV 主要結果 -->
+                                <div class="npv-display" id="npvValue"></div>
+
+                                <!-- 投資決策 -->
+                                <div class="investment-decision" id="investmentStatus"></div>
+
+                                <!-- 說明區塊 -->
+                                <div class="explanation-box">
+                                    <strong>💡 NPV 解釋：</strong><br>
+                                    <strong>NPV > 0：</strong> 投資報酬率超過折現率，<strong style="color: var(--accent-green);">建議投資 ✓</strong><br>
+                                    <strong>NPV = 0：</strong> 投資報酬率等於折現率，投資損益平衡<br>
+                                    <strong>NPV < 0：</strong> 投資報酬率低於折現率，<strong style="color: var(--accent-red);">不建議投資 ✗</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const form = document.getElementById('npvForm');
+        const loading = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const resultSection = document.getElementById('resultSection');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const rate = document.getElementById('rate').value;
+            const cashFlowsStr = document.getElementById('cashFlows').value;
+
+            // 清除之前的錯誤
+            errorDiv.classList.remove('active');
+            loading.classList.add('active');
+
+            try {
+                const response = await fetch(`/calculate/npv?rate=${rate}&cash_flows_str=${encodeURIComponent(cashFlowsStr)}`);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || '計算失敗');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+                resultSection.classList.add('active');
+            } catch (error) {
+                errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle"></i> 計算錯誤：${error.message}`;
+                errorDiv.classList.add('active');
+                resultSection.classList.remove('active');
+            } finally {
+                loading.classList.remove('active');
+            }
+        });
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('zh-TW', {
+                style: 'currency',
+                currency: 'TWD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(value);
+        }
+
+        function displayResults(data) {
+            // 顯示折現率
+            document.getElementById('resultRate').textContent = `${(data.rate * 100).toFixed(2)}% / 年`;
+
+            // 顯示現金流（格式化）
+            const formattedCashFlows = data.cash_flows.map(cf => formatCurrency(cf)).join(' → ');
+            document.getElementById('resultCashFlows').textContent = formattedCashFlows;
+
+            // 顯示 NPV 值
+            const npvElement = document.getElementById('npvValue');
+            const npvValue = data.npv_value;
+            
+            if (npvValue >= 0) {
+                npvElement.textContent = `NPV: +${formatCurrency(npvValue)}`;
+                npvElement.classList.remove('negative');
+                npvElement.classList.add('positive');
+            } else {
+                npvElement.textContent = `NPV: ${formatCurrency(npvValue)}`;
+                npvElement.classList.remove('positive');
+                npvElement.classList.add('negative');
+            }
+
+            // 顯示投資建議
+            const statusElement = document.getElementById('investmentStatus');
+            if (data.is_good_investment) {
+                statusElement.innerHTML = '<i class="bi bi-check-circle"></i> 投資可行 — NPV > 0，建議進行此投資';
+                statusElement.classList.remove('bad');
+                statusElement.classList.add('good');
+            } else {
+                statusElement.innerHTML = '<i class="bi bi-x-circle"></i> 不可行 — NPV < 0，不建議進行此投資';
+                statusElement.classList.remove('good');
+                statusElement.classList.add('bad');
+            }
+        }
+    </script>
+</body>
+</html>
