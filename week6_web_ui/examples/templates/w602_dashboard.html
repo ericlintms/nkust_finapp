@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }}</title>
+    <!-- 一秒讓你變專家的魔法咒語：直接透過網路 (CDN) 載入 Bootstrap 5 的 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <!-- 1. 導航列 (Navbar) -->
+    <nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">🏰 {{ app_title }}</span>
+        </div>
+    </nav>
+
+    <!-- 網頁主要內容區塊包在 container 裡 -->
+    <div class="container">
+
+        <!-- 2. 上半部：資訊卡片 (使用格線系統 row 和 col-md-4) -->
+        <div class="row mb-4">
+            <!-- 第一張卡片 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted">收錄檔數</h5>
+                        <h2 class="text-primary">{{ count }} 檔</h2>
+                    </div>
+                </div>
+            </div>
+            <!-- 第二張卡片 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted">系統狀態</h5>
+                        <h2 class="text-success">連線正常</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 下半部：詳細資料表格 -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="card-title mb-3">今日監控清單</h4>
+
+                <!-- 這裡是 Bootstrap 最帥的斑馬紋表格 (table-striped) -->
+                <table class="table table-striped table-hover alert-info align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>代號</th>
+                            <th>名稱</th>
+                            <th>最新價格</th>
+                            <th>本益比(PE)</th>
+                            <th>狀態標籤</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 🌟 Jinja2 迴圈大展神威的時候到了！ -->
+                        {% for s in stocks %}
+                        <tr>
+                            <td><strong>{{ s.ticker }}</strong></td>
+                            <td>{{ s.name }}</td>
+                            <td>$ {{ s.price }}</td>
+                            <td>{{ s.pe }}</td>
+                            <td>
+                                <!-- 我們可以用 If 來動態根據股票狀態決定 Bootstrap 的顏色標籤 (Badge) -->
+                                {% if s.status == "超值" %}
+                                <span class="badge bg-success">{{ s.status }}</span>
+                                {% elif s.status == "昂貴" %}
+                                <span class="badge bg-danger">{{ s.status }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ s.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>打招呼的網頁</title>
+</head>
+<body>
+    <!-- 這裡就是 Jinja2 的魔法標籤 {{ }} ，它會被 Python 傳過來的 context 替換掉 -->
+    <h1>你好，尊貴的客戶：{{ the_name }} 大人！</h1>
+    <hr>
+    
+    <p>感謝您的投資，您本月獲得的孳息為：</p>
+    <h2 style="color: blue;">$ {{ interest_earned }} 元</h2>
+
+    <!-- Jinja2 If 條件展示 -->
+    {% if interest_earned > 1000 %}
+    <p style="color: red; font-weight: bold;">🔥 恭喜您！利息超過一千元！您是頂級會員！</p>
+    {% endif %}
+
+</body>
+</html>

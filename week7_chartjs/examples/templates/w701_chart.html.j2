@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ app_title }}</title>
+    <!-- 引入 Bootstrap 美化版面 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 🌟 重要：引入 Chart.js 這個畫圖大師！ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-light p-4">
+
+    <div class="container">
+        <h2>📈 {{ stock_symbol }} 近期走勢分析</h2>
+
+        <div class="card shadow-sm mt-4 border-0">
+            <div class="card-body">
+                <!-- 
+                  🌟 核心 1：留一張畫布 (Canvas) 給 Chart.js。
+                  通常外面包一層 div 並且設定 position: relative 比較不容易跑版。
+                -->
+                <div style="position: relative; height:400px; width:100%">
+                    <canvas id="myStockChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 核心 2 & 3：打通前後端與執行繪圖 -->
+    <script>
+        // --------------------------------------------------------
+        // STEP A：接收來自 Python (FastAPI -> Jinja2) 的資料
+        // 注意看那個 | safe，這是保命符，確保字串不會變成亂碼！
+        // --------------------------------------------------------
+        const js_labels = {{ chart_dates | safe }};
+        const js_data = {{ chart_prices | safe }};
+
+        // --------------------------------------------------------
+        // STEP B：取得剛才在 HTML 裡那塊畫布的掌控權
+        // --------------------------------------------------------
+        const ctx = document.getElementById('myStockChart').getContext('2d');
+
+        // --------------------------------------------------------
+        // STEP C：使喚 Chart.js 幫我們畫圖吧！(這些設定都交給 AI 幫忙生)
+        // --------------------------------------------------------
+        const myChart = new Chart(ctx, {
+            type: 'line', // 圖表類型：折線圖
+            data: {
+                labels: js_labels, // 把 X 軸丟給它
+                datasets: [{
+                    label: '收盤價 (TWD)',    // 圖例名稱
+                    data: js_data,          // 把 Y 軸股價丟給它
+                    borderColor: 'rgba(75, 192, 192, 1)', // 線條顏色 (有點科技感的青綠色)
+                    borderWidth: 3,         // 線條粗細
+                    tension: 0.3,           // 平滑設定：0是折線，0.3會變有點平滑的曲線
+                    fill: true,             // 底部要不要填滿
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)' // 底部的半透明漸層色
+                }]
+            },
+            options: {
+                responsive: true,           // 隨視窗自動縮放
+                maintainAspectRatio: false, // 讓它能填滿我們給它的 height 400px
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false  // 股價千萬不能從 0 畫起，不然波動都看不見了！
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
