@@ -1,13 +1,28 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.requests import Request
 from typing import List
+from pathlib import Path
 
 app = FastAPI(title="現金流計算 API")
+
+# 設定 Jinja2 模板路徑
+templates_dir = Path(__file__).parent / "templates"
+templates_dir.mkdir(exist_ok=True)
+templates = Jinja2Templates(directory=str(templates_dir))
 
 def calculate_npv(rate: float, cash_flows: List[float]) -> float:
     npv = 0
     for t, cf in enumerate(cash_flows):
         npv += cf / ((1 + rate) ** t)
     return npv
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    """回傳首頁"""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/calculate/npv")
 def get_npv(rate: float, cash_flows_str: str):
