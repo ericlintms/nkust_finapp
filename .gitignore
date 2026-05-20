@@ -11,3 +11,4 @@ build/
 *.egg
 *.log
 
+week6_web_ui/examples/auth.db

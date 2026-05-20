@@ -168,6 +168,12 @@
                     </p>
                 </div>
                 <div class="col-lg-5">
+                    <div class="d-flex justify-content-lg-end align-items-center gap-3 mb-3">
+                        <div class="text-white-50 small">目前登入：{{ current_user }}</div>
+                        <form method="post" action="/logout">
+                            <button type="submit" class="btn btn-outline-light btn-sm">登出</button>
+                        </form>
+                    </div>
                     <form id="filterForm" method="get" class="row g-3 justify-content-lg-end">
                         <div class="col-sm-6">
                             <label for="days" class="form-label text-white-50">觀察天數</label>
@@ -222,6 +228,22 @@
                     <div class="metric-value fs-3">{{ summary.positive_count }} / {{ summary.negative_count }}</div>
                     <div class="text-muted small">上漲家數 / 下跌家數</div>
                 </div>
+            </div>
+        </section>
+
+        <section class="table-card p-4 mb-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <div>
+                    <h2 class="h5 mb-1">受 JWT 保護的 API</h2>
+                    <p class="text-muted mb-0">
+                        同一顆登入 token 也能保護 JSON API。登入後可直接呼叫
+                        <code>/api/rankings?days={{ days }}&limit={{ limit }}</code>
+                    </p>
+                </div>
+                <a class="btn btn-outline-secondary" href="/api/rankings?days={{ days }}&limit={{ limit }}"
+                    target="_blank" rel="noreferrer">
+                    開啟 API 回應
+                </a>
             </div>
         </section>
 
