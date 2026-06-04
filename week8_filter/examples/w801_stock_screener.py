@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.exceptions import RequestValidationError
 from typing import Optional
 import pandas as pd
+import uvicorn
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="week8_filter/examples/templates")
 
 # 假設這是我們系統剛開機時，從 SQLite 資料庫或 Yahoo 爬蟲拿回來的原生資料。
 # 我們用它來製造一個原始的 Pandas DataFrame 存放在記憶體裡。
@@ -18,14 +20,34 @@ mock_data = [
 raw_df = pd.DataFrame(mock_data)
 
 
+def parse_optional_float(value: Optional[str], field_name: str) -> Optional[float]:
+    if value is None or value.strip() == "":
+        return None
+    try:
+        return float(value)
+    except ValueError as exc:
+        raise RequestValidationError(
+            [
+                {
+                    "type": "float_parsing",
+                    "loc": ["query", field_name],
+                    "msg": "Input should be a valid number, unable to parse string as a number",
+                    "input": value,
+                }
+            ]
+        ) from exc
+
+
 # 建立一個首頁路由，同時兼任接收篩選結果的總部。
 # 所以我們要在括號裡面設計好接球手 (max_price 和 max_pe)
 @app.get("/")
 async def show_screener(
     request: Request,
-    max_price: Optional[float] = None, # 允許沒填寫，所以是 Optional
-    max_pe: Optional[float] = None
+    max_price: Optional[str] = None, # 允許沒填寫，所以是 Optional
+    max_pe: Optional[str] = None
 ):
+    max_price_value = parse_optional_float(max_price, "max_price")
+    max_pe_value = parse_optional_float(max_pe, "max_pe")
     
     # 【超級重要的一步】：先把原始資料拷貝一份出來，不要破壞唯一的底層資料喔！
     filter_df = raw_df.copy()
@@ -33,13 +55,13 @@ async def show_screener(
     # ----------------------------------------------------
     # 開始使用 Pandas 進行邏輯過濾！(如果不為 None，代表使用者有輸入)
     # ----------------------------------------------------
-    if max_price is not None:
+    if max_price_value is not None:
         # 只保留「價格」小於等於使用者輸入條件的股票
-        filter_df = filter_df[filter_df["price"] <= max_price]
+        filter_df = filter_df[filter_df["price"] <= max_price_value]
         
-    if max_pe is not None:
+    if max_pe_value is not None:
         # 繼續過濾，只保留「本益比」小於等於使用者限制的股票
-        filter_df = filter_df[filter_df["pe"] <= max_pe]
+        filter_df = filter_df[filter_df["pe"] <= max_pe_value]
 
     # 過濾完畢！把 Pandas 裡面剩下的精華結果，重新轉成 Dictionary List 送出！
     good_stocks_list = filter_df.to_dict('records')
@@ -54,7 +76,11 @@ async def show_screener(
             "stocks": good_stocks_list,  # 這個是過濾過後的結果唷！
             "result_count": len(good_stocks_list),
             # 我們把這些丟回去，讓等一下網頁表單上可以記住輸入過的值
-            "saved_max_price": max_price if max_price else "",
-            "saved_max_pe": max_pe if max_pe else ""
+            "saved_max_price": max_price if max_price is not None else "",
+            "saved_max_pe": max_pe if max_pe is not None else ""
         }
     )
+
+
+if __name__ == "__main__":
+    uvicorn.run("w801_stock_screener:app", host="127.0.0.1", port=8000, reload=True)

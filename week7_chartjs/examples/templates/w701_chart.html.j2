@@ -36,6 +36,7 @@
         // --------------------------------------------------------
         const js_labels = {{ chart_dates | safe }};
         const js_data = {{ chart_prices | safe }};
+        const js_volumes = {{ chart_volumes | safe }};
 
         // --------------------------------------------------------
         // STEP B：取得剛才在 HTML 裡那塊畫布的掌控權
@@ -46,18 +47,31 @@
         // STEP C：使喚 Chart.js 幫我們畫圖吧！(這些設定都交給 AI 幫忙生)
         // --------------------------------------------------------
         const myChart = new Chart(ctx, {
-            type: 'line', // 圖表類型：折線圖
+            type: 'bar', // 混合圖：用 dataset 各自指定類型
             data: {
                 labels: js_labels, // 把 X 軸丟給它
-                datasets: [{
-                    label: '收盤價 (TWD)',    // 圖例名稱
-                    data: js_data,          // 把 Y 軸股價丟給它
-                    borderColor: 'rgba(75, 192, 192, 1)', // 線條顏色 (有點科技感的青綠色)
-                    borderWidth: 3,         // 線條粗細
-                    tension: 0.3,           // 平滑設定：0是折線，0.3會變有點平滑的曲線
-                    fill: true,             // 底部要不要填滿
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)' // 底部的半透明漸層色
-                }]
+                datasets: [
+                    {
+                        type: 'line',
+                        label: '收盤價 (TWD)',    // 圖例名稱
+                        data: js_data,          // 把 Y 軸股價丟給它
+                        borderColor: 'rgba(75, 192, 192, 1)', // 線條顏色 (有點科技感的青綠色)
+                        borderWidth: 3,         // 線條粗細
+                        tension: 0.3,           // 平滑設定：0是折線，0.3會變有點平滑的曲線
+                        fill: true,             // 底部要不要填滿
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)', // 底部的半透明漸層色
+                        yAxisID: 'y'
+                    },
+                    {
+                        type: 'bar',
+                        label: '成交量',
+                        data: js_volumes,
+                        backgroundColor: 'rgba(135, 206, 235, 0.75)', // 天空藍
+                        borderColor: 'rgba(135, 206, 235, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ]
             },
             options: {
                 responsive: true,           // 隨視窗自動縮放
@@ -69,7 +83,23 @@
                 },
                 scales: {
                     y: {
-                        beginAtZero: false  // 股價千萬不能從 0 畫起，不然波動都看不見了！
+                        beginAtZero: false,  // 股價千萬不能從 0 畫起，不然波動都看不見了！
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: '收盤價 (TWD)'
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false // 避免雙 Y 軸格線重疊影響閱讀
+                        },
+                        title: {
+                            display: true,
+                            text: '成交量'
+                        }
                     }
                 }
             }

@@ -34,12 +34,12 @@ async def show_awesome_chart(request: Request):
     # 使用我們前一週學的 Jinja2 傳遞，把這兩個 List 送給網頁端！
     return templates.TemplateResponse(
         request=request, 
-        name="w701_chart.html", 
+        name="w701_chart.html.j2", 
         context={
             "app_title": "動態技術分析",
             "stock_symbol": "飆王科技 (9999.TW)",
             "chart_dates": dates,  # 把時間 List 傳進去
             "chart_prices": prices, # 把股價 List 傳進去
-            "chart_volumes": volumes # 給想要挑戰作業的同學參考
+            "chart_volumes": volumes # 成交量資料直接來自上方的 volumes 變數
         }
     )
